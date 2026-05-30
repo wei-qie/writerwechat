@@ -42,3 +42,8 @@ SLOTS = {
 }
 
 WEEKDAY_CN = ["一", "二", "三", "四", "五", "六", "日"]
+
+# 微信公众平台配置（创建草稿用）
+# 从环境变量读取，本地可 set WECHAT_APP_ID=xxx
+WECHAT_APP_ID = os.environ.get("WECHAT_APP_ID", "")
+WECHAT_APP_SECRET = os.environ.get("WECHAT_APP_SECRET", "")

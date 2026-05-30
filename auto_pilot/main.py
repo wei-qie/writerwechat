@@ -45,7 +45,7 @@ def fetch_all(slot: str) -> dict:
 
 def main():
     if len(sys.argv) < 2:
-        print("用法: python -m auto_pilot.main <slot>")
+        print("用法: python -m auto_pilot.main <slot> [--wechat]")
         print("slot: morning / midday / close / us_close")
         sys.exit(1)
 
@@ -54,6 +54,8 @@ def main():
     if slot not in valid:
         print(f"未知时段: {slot}")
         sys.exit(1)
+
+    publish_wechat = "--wechat" in sys.argv
 
     if not is_weekday():
         print(f"[SKIP] 今天是周末，仅交易日生成。")
@@ -70,6 +72,16 @@ def main():
         elapsed = (datetime.now() - t0).total_seconds()
         print(f"[OK] 已生成: {docx_path}")
         print(f"[OK] 耗时: {elapsed:.1f}s | 字数: {len(content)}")
+
+        if publish_wechat:
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] 发布到微信草稿箱 ...")
+            from .wechat.publisher import WeChatPublisher
+            pub = WeChatPublisher()
+            result = pub.publish_draft(slot, data)
+            print(f"[OK] 微信草稿已创建！media_id: {result.get('media_id')}")
+            wc_elapsed = (datetime.now() - t0).total_seconds()
+            print(f"[OK] 总耗时: {wc_elapsed:.1f}s")
+
     except Exception as e:
         print(f"[ERROR] 生成失败: {e}")
         sys.exit(1)
