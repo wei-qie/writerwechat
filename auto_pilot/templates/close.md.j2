@@ -1,0 +1,88 @@
+# 芯元财经速递 | 收盘总结
+
+**{{ date_str }}（周{{ weekday }}）**
+
+---
+
+## 一、大盘收盘
+
+{% if indices %}
+| 指数 | 收盘 | 涨跌幅 |
+|------|:----:|:------:|
+{% for idx in indices %}
+| {{ idx.name }} | {{ "%.2f"|format(idx.price) if idx.price else "--" }} | {% if idx.change_pct is not none %}{{ "%.2f"|format(idx.change_pct) }}%{% else %}--{% endif %} |
+{% endfor %}
+{% endif %}
+
+---
+
+## 二、个股涨跌
+
+| 指标 | 数值 |
+|------|:----:|
+| 上涨 | **{{ stats.up }}** 只 |
+| 下跌 | **{{ stats.down }}** 只 |
+| 涨停 | {{ stats.limit_up }} 只 |
+| 跌停 | {{ stats.limit_down }} 只 |
+
+---
+
+## 三、板块排行
+
+### 涨幅居前 TOP10
+
+{% if sectors_gain %}
+| 板块 | 涨幅 |
+|------|:----:|
+{% for s in sectors_gain[:10] %}
+| {{ s.name }} | {% if s.change_pct is not none %}{{ "%.2f"|format(s.change_pct) }}%{% else %}--{% endif %} |
+{% endfor %}
+{% else %}
+> 数据获取中
+{% endif %}
+
+### 跌幅居前 TOP10
+
+{% if sectors_lose %}
+| 板块 | 跌幅 |
+|------|:----:|
+{% for s in sectors_lose[:10] %}
+| {{ s.name }} | {% if s.change_pct is not none %}{{ "%.2f"|format(s.change_pct) }}%{% else %}--{% endif %} |
+{% endfor %}
+{% else %}
+> 数据获取中
+{% endif %}
+
+---
+
+## 四、基金红绿榜
+
+### 单日涨幅 TOP10
+
+{% if fund_gain %}
+{% for f in fund_gain[:10] %}
+- {{ f.name }}（{{ f.code }}）**{{ "%.2f"|format(f.daily_change) }}%**
+{% endfor %}
+{% else %}
+> 数据获取中
+{% endif %}
+
+### 单日跌幅 TOP10
+
+{% if fund_lose %}
+{% for f in fund_lose[:10] %}
+- {{ f.name }}（{{ f.code }}）**{{ "%.2f"|format(f.daily_change) }}%**
+{% endfor %}
+{% else %}
+> 数据获取中
+{% endif %}
+
+---
+
+## 五、一句话总结
+
+> {{ summary }}
+
+---
+
+*数据来源：腾讯财经、天天基金、Yahoo Finance | 仅供参考，不构成投资建议*

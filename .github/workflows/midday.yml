@@ -1,0 +1,32 @@
+name: 芯元_午间收盘
+
+on:
+  schedule:
+    - cron: '30 3 * * 1-5'   # 11:30 CST (03:30 UTC)
+  workflow_dispatch:
+
+env:
+  TZ: Asia/Shanghai
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate article
+        run: python -m auto_pilot.main midday
+
+      - name: Upload article
+        uses: actions/upload-artifact@v4
+        with:
+          name: midday-${{ github.run_id }}
+          path: output/
+          retention-days: 7

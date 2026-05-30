@@ -1,0 +1,32 @@
+name: 芯元_盘前预览
+
+on:
+  schedule:
+    - cron: '25 1 * * 1-5'   # 09:25 CST (01:25 UTC)
+  workflow_dispatch:
+
+env:
+  TZ: Asia/Shanghai
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate article
+        run: python -m auto_pilot.main morning
+
+      - name: Upload article
+        uses: actions/upload-artifact@v4
+        with:
+          name: morning-${{ github.run_id }}
+          path: output/
+          retention-days: 7
