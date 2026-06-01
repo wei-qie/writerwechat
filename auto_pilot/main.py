@@ -1,5 +1,5 @@
 """
-芯元财经速递 - 自动生产系统
+基市红绿灯 - 自动生产系统
 
 用法: python -m auto_pilot.main <slot>
 slot: morning / midday / close / us_close

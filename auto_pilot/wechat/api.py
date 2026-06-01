@@ -62,7 +62,7 @@ class WeChatAPI:
     # ── 草稿 ──────────────────────────────────────────────
 
     def create_draft(self, title: str, html_content: str,
-                     digest: str = "", author: str = "芯元财经速递",
+                     digest: str = "", author: str = "基市红绿灯",
                      thumb_media_id: str = "") -> dict:
         """创建图文草稿，返回结果"""
         token = self.get_access_token()
@@ -72,12 +72,13 @@ class WeChatAPI:
                 "author": author,
                 "digest": digest,
                 "content": html_content,
-                "content_source_url": "",
-                "thumb_media_id": thumb_media_id,
                 "need_open_comment": 0,
                 "only_fans_can_comment": 0,
             }]
         }
+        # 只传入非空的可选字段
+        if thumb_media_id:
+            body["articles"][0]["thumb_media_id"] = thumb_media_id
         r = httpx.post(
             DRAFT_CREATE_URL,
             params={"access_token": token},

@@ -1,4 +1,4 @@
-name: 芯元_收盘总结
+name: 基市红绿灯_收盘总结
 
 on:
   schedule:

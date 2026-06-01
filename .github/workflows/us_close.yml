@@ -1,4 +1,4 @@
-name: 芯元_美股收盘
+name: 基市红绿灯_美股收盘
 
 on:
   schedule:

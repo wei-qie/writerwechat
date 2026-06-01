@@ -19,7 +19,7 @@ class WeChatPublisher:
         md = gen.generate(slot, data)
 
         # 从 markdown 提取标题、摘要
-        title = "芯元财经速递"
+        title = "基市红绿灯"
         digest = ""
         for line in md.split("\n"):
             s = line.strip()
