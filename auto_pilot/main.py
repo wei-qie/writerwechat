@@ -29,14 +29,16 @@ def fetch_all(slot: str) -> dict:
     if slot == "morning":
         data["us_indices"] = get_us_indices()
         data["asia_indices"] = get_asia_indices()
-    elif slot == "midday":
+    elif slot in ("midday", "close"):
         gain, lose = get_fund_rank(10)
-        data["fund_gain"] = [f for f in gain if f.get("daily_change", 0) > 0]
-        data["fund_lose"] = [f for f in lose if f.get("daily_change", 0) < 0]
-    elif slot == "close":
-        gain, lose = get_fund_rank(10)
-        data["fund_gain"] = [f for f in gain if f.get("daily_change", 0) > 0]
-        data["fund_lose"] = [f for f in lose if f.get("daily_change", 0) < 0]
+        data["fund_gain"] = sorted(
+            [f for f in gain if f.get("daily_change", 0) > 0],
+            key=lambda x: x["daily_change"], reverse=True,
+        )
+        data["fund_lose"] = sorted(
+            [f for f in lose if f.get("daily_change", 0) < 0],
+            key=lambda x: x["daily_change"],
+        )
     elif slot == "us_close":
         data["us_indices"] = get_us_indices()
 

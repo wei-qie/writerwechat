@@ -121,72 +121,113 @@ def format_index_change(indices):
 
 def get_market_stats():
     """
-    获取市场概况（新浪API 并发分页）
+    获取市场概况 — 二分查找法，只需 ~10 次请求
+    新浪 API 按涨跌幅降序排列，定位由正转负的分界点即可
     """
-    up = down = limit_up = limit_down = total_fetched = 0
+    import time
+
     url = "https://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/Market_Center.getHQNodeData"
     h = {"User-Agent": "Mozilla/5.0", "Referer": "https://finance.sina.com.cn/"}
+    TOTAL_PAGES = 56  # A股 ~5300只，每页100
 
-    # 先获取第一页，确定总条数
-    for attempt in range(2):  # 重试一次
-        try:
-            r = httpx.get(url, params={"page": 1, "num": 100, "sort": "changepercent", "asc": 0, "node": "hs_a"}, headers=h, timeout=10)
-            first = r.json()
-            if first and len(first) > 1:
-                break
-        except Exception as e:
-            if attempt == 1:
-                print(f"[WARN] 市场统计首页失败: {e}")
-                return {"up": 0, "down": 0, "flat": 0, "limit_up": 0, "limit_down": 0, "total": 0}
-            first = []
+    def _page(pg):
+        for _ in range(2):
+            try:
+                r = httpx.get(url, params={"page": pg, "num": 100, "sort": "changepercent",
+                                           "asc": 0, "node": "hs_a"}, headers=h, timeout=10)
+                if r.status_code == 200 and len(r.text) > 10:
+                    return r.json()
+            except Exception:
+                time.sleep(0.3)
+        return []
 
+    # 取首页确定范围
+    first = _page(1)
     if not first or len(first) < 2:
         return {"up": 0, "down": 0, "flat": 0, "limit_up": 0, "limit_down": 0, "total": 0}
 
-    # 用线程池并发请求50页（每页100只，共5000只，覆盖全部A股）
-    from concurrent.futures import ThreadPoolExecutor, as_completed
-    all_stocks = list(first)
+    # 首页最后一只的涨幅
+    try:
+        tail_pct = float(first[-1].get("changepercent", 0))
+    except (TypeError, ValueError):
+        tail_pct = -999
 
-    def fetch_page(pg):
-        for retry in range(2):
+    # 如果首页最后一只是绿的 → 所有涨幅榜在前100内
+    if tail_pct <= 0:
+        pos_pages = [1]
+    else:
+        # 二分查找：找到最后一只涨幅为正的页码
+        lo, hi = 2, TOTAL_PAGES
+        while lo <= hi:
+            mid = (lo + hi) // 2
+            data = _page(mid)
+            if not data:
+                hi = mid - 1
+                continue
             try:
-                r2 = httpx.get(url, params={"page": pg, "num": 100, "sort": "changepercent", "asc": 0, "node": "hs_a"}, headers=h, timeout=10)
-                if r2.status_code == 200 and len(r2.text) > 10:
-                    return r2.json()
-            except Exception:
-                if retry == 0:
-                    continue
-        return []
+                pct = float(data[0].get("changepercent", 0))
+            except (TypeError, ValueError):
+                pct = -999
+            if pct > 0:
+                lo = mid + 1
+            else:
+                hi = mid - 1
+            time.sleep(0.15)
+        pos_pages = list(range(1, lo))  # 1 ~ lo-1 页都是正涨幅
 
-    total_stock_count = 0
-    with ThreadPoolExecutor(max_workers=5) as pool:
-        futs = {pool.submit(fetch_page, p): p for p in range(2, 56)}
-        for fut in as_completed(futs):
-            stocks = fut.result()
-            if stocks:
-                all_stocks.extend(stocks)
-                total_stock_count += len(stocks)
+    # 统计正涨幅页面中的个股
+    up = limit_up = 0
+    flat = down = limit_down = 0
+    seen = 0
 
-    for s in all_stocks:
-        try:
-            pct = float(s.get("changepercent", 0))
-        except (ValueError, TypeError):
+    for pg in pos_pages:
+        data = _page(pg)
+        if not data:
             continue
-        if pct > 0:
-            up += 1
-            if pct >= 9.5:
-                limit_up += 1
-        elif pct < 0:
-            down += 1
-            if pct <= -9.5:
-                limit_down += 1
+        for s in data:
+            try:
+                pct = float(s.get("changepercent", 0))
+            except (TypeError, ValueError):
+                continue
+            seen += 1
+            if pct > 0:
+                up += 1
+                if pct >= 9.5:
+                    limit_up += 1
+            elif pct == 0:
+                flat += 1
+            else:
+                down += 1
+                if pct <= -9.5:
+                    limit_down += 1
 
-    total_fetched = len(all_stocks)
+    total = seen
+    # 再取1-2页跌幅榜确认尾部数据
+    for pg in range(lo, min(lo + 2, TOTAL_PAGES + 1)):
+        data = _page(pg)
+        if not data:
+            continue
+        for s in data:
+            try:
+                pct = float(s.get("changepercent", 0))
+            except (TypeError, ValueError):
+                continue
+            total += 1
+            if pct > 0:
+                up += 1
+            elif pct == 0:
+                flat += 1
+            else:
+                down += 1
+                if pct <= -9.5:
+                    limit_down += 1
+        time.sleep(0.15)
+
     return {
         "up": up,
         "down": down,
-        "flat": max(0, total_fetched - up - down),
+        "flat": flat,
         "limit_up": limit_up,
         "limit_down": limit_down,
-        "total": total_fetched,
+        "total": total,
     }
