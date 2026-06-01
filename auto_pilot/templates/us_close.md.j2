@@ -4,18 +4,16 @@
 
 ---
 
-## 三大指数收盘
+## 美股收盘
 
 {% if us_indices %}
-| 指数 | 收盘 | 涨跌幅 |
-|------|:----:|:------:|
-{% for idx in us_indices %}
-| {{ idx.name }} | {{ "%.2f"|format(idx.price) if idx.price else "--" }} | {% if idx.change_pct is not none %}{{ "%.2f"|format(idx.change_pct) }}%{% else %}--{% endif %} |
-{% endfor %}
-{% else %}
-> 数据获取中
+**三大指数** — {% for idx in us_indices %}{{ idx.name }} {{ "%.2f"|format(idx.change_pct) }}%{% if not loop.last %} | {% endif %}{% endfor %}
+{% endif %}
+
+{% if sectors_gain or sectors_lose %}
+**板块方面**，{% if sectors_gain %}{{ sectors_gain[:4]|map(attribute='name')|join('、') }}涨幅居前；{% endif %}{% if sectors_lose %}{{ sectors_lose[:4]|map(attribute='name')|join('、') }}跌幅居前。{% endif %}
 {% endif %}
 
 ---
 
-*数据来源：Yahoo Finance | 仅供参考，不构成投资建议*
+*数据来源：新浪财经、Yahoo Finance | 仅供参考，不构成投资建议*

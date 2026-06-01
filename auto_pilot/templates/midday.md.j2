@@ -4,73 +4,16 @@
 
 ---
 
-## 三大指数半日表现
+## 半日综述
 
-{% if indices %}
-| 指数 | 午盘收盘 | 涨跌幅 |
-|------|:--------:|:------:|
-{% for idx in indices %}
-| {{ idx.name }} | {{ "%.2f"|format(idx.price) if idx.price else "--" }} | {% if idx.change_pct is not none %}{{ "%.2f"|format(idx.change_pct) }}%{% else %}--{% endif %} |
-{% endfor %}
-{% endif %}
+**三大指数** — {% for idx in indices %}{{ idx.name }} {{ "%.2f"|format(idx.change_pct) }}%{% if not loop.last %} | {% endif %}{% endfor %}
 
----
+盘面上涨 **{{ stats.up }}** 只，下跌 **{{ stats.down }}** 只；涨停 {{ stats.limit_up }} 只，跌停 {{ stats.limit_down }} 只。
 
-## 市场概况
+**板块方面**，{% if sectors_gain %}{{ sectors_gain[:4]|map(attribute='name')|join('、') }}走强；{% endif %}{% if sectors_lose %}{{ sectors_lose[:4]|map(attribute='name')|join('、') }}走弱。{% endif %}
 
-| 指标 | 数值 |
-|------|:----:|
-| 上涨 | {{ stats.up }} 只 |
-| 下跌 | {{ stats.down }} 只 |
-| 涨停 | {{ stats.limit_up }} 只 |
-| 跌停 | {{ stats.limit_down }} 只 |
-
----
-
-## 板块表现
-
-### 涨幅居前
-
-{% if sectors_gain %}
-{% for s in sectors_gain[:8] %}
-- **{{ s.name }}** {% if s.change_pct is not none %}{{ "%.2f"|format(s.change_pct) }}%{% else %}--{% endif %}
-{% endfor %}
-{% else %}
-> 数据获取中
-{% endif %}
-
-### 跌幅居前
-
-{% if sectors_lose %}
-{% for s in sectors_lose[:8] %}
-- **{{ s.name }}** {% if s.change_pct is not none %}{{ "%.2f"|format(s.change_pct) }}%{% else %}--{% endif %}
-{% endfor %}
-{% else %}
-> 数据获取中
-{% endif %}
-
----
-
-## 基金涨跌
-
-### 涨幅 TOP5
-
-{% if fund_gain %}
-{% for f in fund_gain[:5] %}
-- {{ f.name }}（{{ f.code }}）{{ "%.2f"|format(f.daily_change) }}%
-{% endfor %}
-{% else %}
-> 数据获取中
-{% endif %}
-
-### 跌幅 TOP5
-
-{% if fund_lose %}
-{% for f in fund_lose[:5] %}
-- {{ f.name }}（{{ f.code }}）{{ "%.2f"|format(f.daily_change) }}%
-{% endfor %}
-{% else %}
-> 数据获取中
+{% if fund_gain or fund_lose %}
+**基金方面**，{% if fund_gain %}{{ fund_gain[0].name }}涨{{ "%.2f"|format(fund_gain[0].daily_change) }}%领跑；{% endif %}{% if fund_lose %}{{ fund_lose[0].name }}跌{{ "%.2f"|format(fund_lose[0].daily_change) }}%居前。{% endif %}
 {% endif %}
 
 ---

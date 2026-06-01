@@ -4,65 +4,24 @@
 
 ---
 
-## 隔夜全球市场
+## A股开盘
 
-### 美国股市（前一交易日收盘）
+{{ open_desc }}。开盘约 {{ stats.down }} 只个股下跌。
+
+**板块方面**，{% if sectors_gain %}{{ sectors_gain[:3]|map(attribute='name')|join('、') }}等走强；{% endif %}{% if sectors_lose %}{{ sectors_lose[:3]|map(attribute='name')|join('、') }}等跌幅居前。{% endif %}
+
+---
+
+## 隔夜外盘
 
 {% if us_indices %}
-| 指数 | 收盘 | 涨跌幅 |
-|------|:----:|:------:|
-{% for idx in us_indices %}
-| {{ idx.name }} | {{ "%.2f"|format(idx.price) if idx.price else "--" }} | {% if idx.change_pct is not none %}{{ "%.2f"|format(idx.change_pct) }}%{% else %}--{% endif %} |
-{% endfor %}
-{% else %}
-> 数据获取中
+**美股** — {% for idx in us_indices %}{{ idx.name }} {{ "%.2f"|format(idx.change_pct) }}%{% if not loop.last %} | {% endif %}{% endfor %}
 {% endif %}
-
-### 亚太市场（盘前）
 
 {% if asia_indices %}
-| 指数 | 最新 | 涨跌幅 |
-|------|:----:|:------:|
-{% for idx in asia_indices %}
-| {{ idx.name }} | {{ "%.2f"|format(idx.price) if idx.price else "--" }} | {% if idx.change_pct is not none %}{{ "%.2f"|format(idx.change_pct) }}%{% else %}--{% endif %} |
-{% endfor %}
-{% else %}
-> 数据获取中
+**亚太** — {% for idx in asia_indices %}{{ idx.name }} {{ "%.2f"|format(idx.change_pct) }}%{% if not loop.last %} | {% endif %}{% endfor %}
 {% endif %}
 
 ---
 
-## A股开盘速报
-
-> **{{ open_desc }}**
-
-{% if indices %}
-| 指数 | 开盘价 | 最新 | 涨跌幅 |
-|------|:------:|:----:|:------:|
-{% for idx in indices %}
-| {{ idx.name }} | {{ "%.2f"|format(idx.open) if idx.open else "--" }} | {{ "%.2f"|format(idx.price) if idx.price else "--" }} | {% if idx.change_pct is not none %}{{ "%.2f"|format(idx.change_pct) }}%{% else %}--{% endif %} |
-{% endfor %}
-{% endif %}
-
-### 市场概况
-
-| 指标 | 数值 |
-|------|:----:|
-| 上涨 | {{ stats.up }} 只 |
-| 下跌 | {{ stats.down }} 只 |
-| 涨停 | {{ stats.limit_up }} 只 |
-| 跌停 | {{ stats.limit_down }} 只 |
-
-### 板块涨幅 TOP5
-
-{% if sectors_gain %}
-{% for s in sectors_gain[:5] %}
-- {{ s.name }} {% if s.change_pct is not none %}{{ "%.2f"|format(s.change_pct) }}%{% else %}--{% endif %}
-{% endfor %}
-{% else %}
-> 数据获取中
-{% endif %}
-
----
-
-*数据来源：腾讯财经、天天基金、Yahoo Finance | 仅供参考，不构成投资建议*
+*数据来源：腾讯财经、天天基金 | 仅供参考，不构成投资建议*
