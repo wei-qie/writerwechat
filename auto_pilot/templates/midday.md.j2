@@ -12,8 +12,9 @@
 
 **板块方面**，{% if sectors_gain %}{{ sectors_gain[:4]|map(attribute='name')|join('、') }}走强；{% endif %}{% if sectors_lose %}{{ sectors_lose[:4]|map(attribute='name')|join('、') }}走弱。{% endif %}
 
-{% if fund_gain or fund_lose %}
-**基金方面**，{% if fund_gain %}{{ fund_gain[0].name }}涨{{ "%.2f"|format(fund_gain[0].daily_change) }}%领跑；{% endif %}{% if fund_lose %}{{ fund_lose[0].name }}跌{{ "%.2f"|format(fund_lose[0].daily_change) }}%居前。{% endif %}
+{% set total_fund = fund_gain|length + fund_lose|length %}
+{% if total_fund > 0 %}
+**基金方面**，盘中 {{ fund_gain|length }} 只基金上涨、{{ fund_lose|length }} 只基金下跌。
 {% endif %}
 
 ---

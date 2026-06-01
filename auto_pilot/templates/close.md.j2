@@ -12,8 +12,9 @@
 
 **板块方面**，{% if sectors_gain %}{{ sectors_gain[:5]|map(attribute='name')|join('、') }}涨幅居前；{% endif %}{% if sectors_lose %}{{ sectors_lose[:5]|map(attribute='name')|join('、') }}跌幅居前。{% endif %}
 
-{% if fund_gain or fund_lose %}
-**基金表现**，{% if fund_gain %}涨幅前三：{% for f in fund_gain[:3] %}{{ f.name }}（{{ "%.2f"|format(f.daily_change) }}%）{% if not loop.last %}、{% endif %}{% endfor %}{% endif %}{% if fund_gain and fund_lose %}；{% endif %}{% if fund_lose %}跌幅前三：{% for f in fund_lose[:3] %}{{ f.name }}（{{ "%.2f"|format(f.daily_change) }}%）{% if not loop.last %}、{% endif %}{% endfor %}{% endif %}。
+{% set total_fund = fund_gain|length + fund_lose|length %}
+{% if total_fund > 0 %}
+**基金方面**，当日有 {{ fund_gain|length }} 只基金涨幅为正、{{ fund_lose|length }} 只基金下跌。
 {% endif %}
 
 ---
